@@ -1,0 +1,36 @@
+import { CreateTaskSchemaType } from "@/schemas";
+import { createTask } from "@/services";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "sonner";
+
+interface Props {
+  onReset?: () => void;
+}
+
+export const useCreateTask = ({ onReset }: Props) => {
+  const toastId = "create-task";
+
+  const queryClient = useQueryClient();
+
+  const { mutate: mutateTodos } = useMutation({
+    mutationFn: async (data: CreateTaskSchemaType) => {
+      createTask(data);
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["todos"] });
+      toast.loading("Adding task...", { id: toastId });
+    },
+    onSuccess: () => {
+      onReset?.();
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      toast.success("Task added successfully!", { id: toastId });
+    },
+    onError: (err) => {
+      console.log("Error adding todo:", err);
+      toast.error("Failed to add task. Please try again.", { id: toastId });
+    },
+  });
+
+  return { mutateTodos };
+};

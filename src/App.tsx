@@ -1,0 +1,52 @@
+import axios from "axios";
+import React from "react";
+
+import { useQuery } from "@tanstack/react-query";
+import { TaskCreateForm } from "./components/task-create-form";
+
+import { TaskEdit } from "./components/tasks-edit";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Spinner } from "./components/ui/shadcn-io/spinner";
+import { ITodo } from "./models";
+
+function App() {
+  const handleGetTodos = async () => {
+    const response = await axios.get("/api/todos");
+    return response.data;
+  };
+
+  const { data: todosData, isPending } = useQuery<ITodo[]>({
+    queryKey: ["todos"],
+    queryFn: handleGetTodos,
+    placeholderData: [],
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+  });
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-lg shadow-lg h-full">
+        <CardHeader>
+          <CardTitle className="text-2xl">Task Manager</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <TaskCreateForm />
+          {isPending ? (
+            <div className="flex justify-center">
+              <Spinner />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {todosData?.map((todo) => (
+                <TaskEdit todo={todo} key={todo._id} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default App;
