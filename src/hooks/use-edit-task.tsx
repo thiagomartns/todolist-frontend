@@ -1,4 +1,5 @@
 import { FormValues } from "@/components/tasks-edit";
+import { todoKeys } from "@/lib/query-keys";
 import { ICompleteTask, IEditTask, ITodo } from "@/models";
 import { completeTask, editTask, removeTask } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -23,10 +24,10 @@ export const useEditTask = ({ todo, form }: Props) => {
 
     onMutate: async (values) => {
       toast.loading("Editing task...", { id: editTaskID });
-      await queryClient.cancelQueries({ queryKey: ["todos"] });
+      await queryClient.cancelQueries({ queryKey: todoKeys.all });
 
-      const previous = queryClient.getQueryData<ITodo[]>(["todos"]) ?? [];
-      queryClient.setQueryData<ITodo[]>(["todos"], (curr = []) =>
+      const previous = queryClient.getQueryData<ITodo[]>(todoKeys.all) ?? [];
+      queryClient.setQueryData<ITodo[]>(todoKeys.all, (curr = []) =>
         curr.map((t) => (t._id === todo._id ? { ...t, text: values.text } : t))
       );
 
@@ -39,12 +40,12 @@ export const useEditTask = ({ todo, form }: Props) => {
     },
 
     onError: (_err, _values, ctx) => {
-      if (ctx?.previous) queryClient.setQueryData(["todos"], ctx.previous);
+      if (ctx?.previous) queryClient.setQueryData(todoKeys.all, ctx.previous);
       toast.error("Failed to edit task. Please try again.", { id: editTaskID });
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: todoKeys.all });
     },
   });
 
@@ -56,11 +57,11 @@ export const useEditTask = ({ todo, form }: Props) => {
         `${vars.completed ? "Completing" : "Uncompleting"} task...`,
         { id: completeTaskID }
       );
-      await queryClient.cancelQueries({ queryKey: ["todos"] });
+      await queryClient.cancelQueries({ queryKey: todoKeys.all });
 
-      const previousTodos = queryClient.getQueryData<ITodo[]>(["todos"]);
+      const previousTodos = queryClient.getQueryData<ITodo[]>(todoKeys.all);
 
-      queryClient.setQueryData<ITodo[]>(["todos"], (curr) =>
+      queryClient.setQueryData<ITodo[]>(todoKeys.all, (curr) =>
         curr?.map((t) =>
           t._id === todo._id ? { ...t, completed: !t.completed } : t
         )
@@ -69,7 +70,7 @@ export const useEditTask = ({ todo, form }: Props) => {
       return { previousTodos };
     },
     onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: todoKeys.all });
       toast.success(
         `${
           vars.completed
@@ -81,7 +82,7 @@ export const useEditTask = ({ todo, form }: Props) => {
     },
     onError: (err, vars, ctx) => {
       if (ctx?.previousTodos) {
-        queryClient.setQueryData(["todos"], ctx.previousTodos);
+        queryClient.setQueryData(todoKeys.all, ctx.previousTodos);
       }
       toast.error(
         `Failed to ${
@@ -100,11 +101,11 @@ export const useEditTask = ({ todo, form }: Props) => {
       await removeTask(id);
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["todos"] });
+      await queryClient.cancelQueries({ queryKey: todoKeys.all });
       toast.loading("Removing task...", { id: removeTaskID });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: todoKeys.all });
       toast.success("Task removed successfully!", { id: removeTaskID });
     },
     onError: (err, _vars, _ctx) => {

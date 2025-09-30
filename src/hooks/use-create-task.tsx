@@ -1,3 +1,4 @@
+import { todoKeys } from "@/lib/query-keys";
 import { CreateTaskSchemaType } from "@/schemas";
 import { createTask } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,12 +18,12 @@ export const useCreateTask = ({ onReset }: Props) => {
       return await createTask(data);
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["todos"] });
+      await queryClient.cancelQueries({ queryKey: todoKeys.all });
       toast.loading("Adding task...", { id: toastId });
     },
     onSuccess: () => {
       onReset?.();
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: todoKeys.all });
       toast.success("Task added successfully!", { id: toastId });
     },
     onError: (err) => {

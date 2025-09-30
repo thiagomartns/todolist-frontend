@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Spinner } from "./components/ui/shadcn-io/spinner";
 import { ITodo } from "./models";
 import { getTodos } from "./services";
+import { todoKeys } from "./lib/query-keys";
 
 function App() {
   const { data: todosData, isPending } = useQuery<ITodo[]>({
-    queryKey: ["todos"],
+    queryKey: todoKeys.all,
     queryFn: getTodos,
     placeholderData: [],
     refetchOnWindowFocus: false,
