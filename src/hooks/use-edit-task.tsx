@@ -1,8 +1,7 @@
 import { FormValues } from "@/components/tasks-edit";
-import { ICompleteTask, ITodo } from "@/models";
+import { ICompleteTask, IEditTask, ITodo } from "@/models";
 import { completeTask, editTask, removeTask } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -19,14 +18,14 @@ export const useEditTask = ({ todo, form }: Props) => {
   const queryClient = useQueryClient();
 
   const { mutate: handleEditTask } = useMutation({
-    mutationFn: async (values: FormValues) => editTask(todo),
+    mutationFn: async (values: IEditTask) =>
+      editTask({ _id: todo._id, text: values.text }),
 
     onMutate: async (values) => {
       toast.loading("Editing task...", { id: editTaskID });
       await queryClient.cancelQueries({ queryKey: ["todos"] });
 
       const previous = queryClient.getQueryData<ITodo[]>(["todos"]) ?? [];
-
       queryClient.setQueryData<ITodo[]>(["todos"], (curr = []) =>
         curr.map((t) => (t._id === todo._id ? { ...t, text: values.text } : t))
       );

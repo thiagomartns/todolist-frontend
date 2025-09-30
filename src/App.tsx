@@ -1,27 +1,17 @@
-import axios from "axios";
-import React from "react";
-
 import { useQuery } from "@tanstack/react-query";
 import { TaskCreateForm } from "./components/task-create-form";
-
 import { TaskEdit } from "./components/tasks-edit";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Spinner } from "./components/ui/shadcn-io/spinner";
 import { ITodo } from "./models";
+import { getTodos } from "./services";
 
 function App() {
-  const handleGetTodos = async () => {
-    const response = await axios.get("/api/todos");
-    return response.data;
-  };
-
   const { data: todosData, isPending } = useQuery<ITodo[]>({
     queryKey: ["todos"],
-    queryFn: handleGetTodos,
+    queryFn: getTodos,
     placeholderData: [],
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 1,
   });
 
   return (

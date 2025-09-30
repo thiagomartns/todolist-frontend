@@ -1,7 +1,6 @@
 import { CreateTaskSchemaType } from "@/schemas";
 import { createTask } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "sonner";
 
 interface Props {
@@ -15,7 +14,7 @@ export const useCreateTask = ({ onReset }: Props) => {
 
   const { mutate: mutateTodos } = useMutation({
     mutationFn: async (data: CreateTaskSchemaType) => {
-      createTask(data);
+      return await createTask(data);
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["todos"] });

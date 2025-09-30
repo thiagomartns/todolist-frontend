@@ -4,7 +4,7 @@ export interface ITodo {
   completed: boolean;
 }
 
-export interface IEditTask extends Partial<ITodo> {}
+export interface IEditTask extends Omit<ITodo, "completed"> {}
 
 export interface ICreateTask extends Omit<ITodo, "_id" | "completed"> {}
 
