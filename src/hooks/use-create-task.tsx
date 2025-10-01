@@ -1,4 +1,5 @@
 import { todoKeys } from "@/lib/query-keys";
+import { toastIds } from "@/lib/toast-ids";
 import { CreateTaskSchemaType } from "@/schemas";
 import { createTask } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,8 +10,6 @@ interface Props {
 }
 
 export const useCreateTask = ({ onReset }: Props) => {
-  const toastId = "create-task";
-
   const queryClient = useQueryClient();
 
   const { mutate: mutateTodos } = useMutation({
@@ -19,16 +18,18 @@ export const useCreateTask = ({ onReset }: Props) => {
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: todoKeys.all });
-      toast.loading("Adding task...", { id: toastId });
+      toast.loading("Adding task...", { id: toastIds.create() });
     },
     onSuccess: () => {
       onReset?.();
       queryClient.invalidateQueries({ queryKey: todoKeys.all });
-      toast.success("Task added successfully!", { id: toastId });
+      toast.success("Task added successfully!", { id: toastIds.create() });
     },
     onError: (err) => {
       console.log("Error adding todo:", err);
-      toast.error("Failed to add task. Please try again.", { id: toastId });
+      toast.error("Failed to add task. Please try again.", {
+        id: toastIds.create(),
+      });
     },
   });
 

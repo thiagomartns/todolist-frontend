@@ -1,4 +1,5 @@
 import { todoKeys } from "@/lib/query-keys";
+import { toastIds } from "@/lib/toast-ids";
 import { ICompleteTask, ITodo } from "@/models";
 import { EditTaskSchemaType } from "@/schemas";
 import { completeTask, editTask, removeTask } from "@/services";
@@ -12,10 +13,6 @@ interface Props {
 }
 
 export const useEditTask = ({ todo, form }: Props) => {
-  const removeTaskID = "remove-task";
-  const editTaskID = "edit-task";
-  const completeTaskID = "complete-task";
-
   const queryClient = useQueryClient();
 
   const { mutate: handleEditTask } = useMutation({
@@ -23,7 +20,8 @@ export const useEditTask = ({ todo, form }: Props) => {
       editTask({ _id: todo._id, text: values.text }),
 
     onMutate: async (values) => {
-      toast.loading("Editing task...", { id: editTaskID });
+      const toastId = toastIds.edit(todo._id);
+      toast.loading("Editing task...", { id: toastId });
       await queryClient.cancelQueries({ queryKey: todoKeys.all });
 
       const previous = queryClient.getQueryData<ITodo[]>(todoKeys.all) ?? [];
@@ -31,17 +29,21 @@ export const useEditTask = ({ todo, form }: Props) => {
         curr.map((t) => (t._id === todo._id ? { ...t, text: values.text } : t))
       );
 
-      return { previous, values };
+      return { previous, values, toastId };
     },
 
-    onSuccess: (_data, values) => {
+    onSuccess: (_data, values, ctx) => {
       form.reset({ text: values.text, completed: form.getValues("completed") });
-      toast.success("Task edited successfully!", { id: editTaskID });
+      toast.success("Task edited successfully!", {
+        id: ctx?.toastId,
+      });
     },
 
     onError: (_err, _values, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(todoKeys.all, ctx.previous);
-      toast.error("Failed to edit task. Please try again.", { id: editTaskID });
+      toast.error("Failed to edit task. Please try again.", {
+        id: ctx?.toastId,
+      });
     },
 
     onSettled: () => {
@@ -53,9 +55,10 @@ export const useEditTask = ({ todo, form }: Props) => {
     mutationFn: async (data: ICompleteTask) => completeTask(data),
 
     onMutate: async (vars) => {
+      const toastId = toastIds.complete(todo._id);
       toast.loading(
         `${vars.completed ? "Completing" : "Uncompleting"} task...`,
-        { id: completeTaskID }
+        { id: toastId }
       );
       await queryClient.cancelQueries({ queryKey: todoKeys.all });
 
@@ -67,9 +70,9 @@ export const useEditTask = ({ todo, form }: Props) => {
         )
       );
 
-      return { previousTodos };
+      return { previousTodos, toastId };
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (_, vars, ctx) => {
       queryClient.invalidateQueries({ queryKey: todoKeys.all });
       toast.success(
         `${
@@ -77,7 +80,7 @@ export const useEditTask = ({ todo, form }: Props) => {
             ? "Task completed successfully!"
             : "Task uncompleted successfully!"
         }`,
-        { id: completeTaskID }
+        { id: ctx?.toastId }
       );
     },
     onError: (err, vars, ctx) => {
@@ -89,7 +92,7 @@ export const useEditTask = ({ todo, form }: Props) => {
           vars.completed ? "complete" : "uncomplete"
         } task. Please try again.`,
         {
-          id: completeTaskID,
+          id: ctx?.toastId,
         }
       );
       console.log("Error updating todo:", err);
@@ -101,17 +104,21 @@ export const useEditTask = ({ todo, form }: Props) => {
       await removeTask(id);
     },
     onMutate: async () => {
+      const toastId = toastIds.remove(todo._id);
       await queryClient.cancelQueries({ queryKey: todoKeys.all });
-      toast.loading("Removing task...", { id: removeTaskID });
+      toast.loading("Removing task...", { id: toastId });
+      return { toastId };
     },
-    onSuccess: () => {
+    onSuccess: (_data, _vars, ctx) => {
       queryClient.invalidateQueries({ queryKey: todoKeys.all });
-      toast.success("Task removed successfully!", { id: removeTaskID });
+      toast.success("Task removed successfully!", {
+        id: ctx?.toastId,
+      });
     },
-    onError: (err, _vars, _ctx) => {
+    onError: (err, _vars, ctx) => {
       console.log("Error adding todo:", err);
       toast.error("Failed to remove task. Please try again.", {
-        id: removeTaskID,
+        id: ctx?.toastId,
       });
     },
   });
