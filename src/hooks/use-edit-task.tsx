@@ -1,6 +1,6 @@
-import { FormValues } from "@/components/tasks-edit";
 import { todoKeys } from "@/lib/query-keys";
-import { ICompleteTask, IEditTask, ITodo } from "@/models";
+import { ICompleteTask, ITodo } from "@/models";
+import { EditTaskSchemaType } from "@/schemas";
 import { completeTask, editTask, removeTask } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UseFormReturn } from "react-hook-form";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 interface Props {
   todo: ITodo;
-  form: UseFormReturn<FormValues>;
+  form: UseFormReturn<EditTaskSchemaType>;
 }
 
 export const useEditTask = ({ todo, form }: Props) => {
@@ -19,7 +19,7 @@ export const useEditTask = ({ todo, form }: Props) => {
   const queryClient = useQueryClient();
 
   const { mutate: handleEditTask } = useMutation({
-    mutationFn: async (values: IEditTask) =>
+    mutationFn: async (values: EditTaskSchemaType) =>
       editTask({ _id: todo._id, text: values.text }),
 
     onMutate: async (values) => {

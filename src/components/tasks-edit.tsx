@@ -1,6 +1,5 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Send, Trash } from "lucide-react";
@@ -8,20 +7,14 @@ import { Form, FormControl, FormField, FormItem } from "./ui/form";
 import { Checkbox } from "./ui/checkbox";
 import { useEditTask } from "@/hooks/use-edit-task";
 import { ITodo } from "@/models";
+import { EditTaskSchemaType } from "@/schemas";
 
 interface TaskEditProps {
   todo: ITodo;
 }
 
-const schema = z.object({
-  text: z.string().min(2).max(100),
-  completed: z.boolean(),
-});
-
-export type FormValues = z.infer<typeof schema>;
-
 export const TaskEdit = ({ todo }: TaskEditProps) => {
-  const form = useForm<FormValues>({
+  const form = useForm<EditTaskSchemaType>({
     defaultValues: {
       text: todo.text,
       completed: todo.completed,

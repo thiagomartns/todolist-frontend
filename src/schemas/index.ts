@@ -6,9 +6,9 @@ export const createTaskSchema = z.object({
 
 export type CreateTaskSchemaType = z.infer<typeof createTaskSchema>;
 
-const schema = z.object({
+const editTaskSchema = z.object({
   text: z.string().min(2).max(100),
   completed: z.boolean(),
 });
 
-export type FormValues = z.infer<typeof schema>;
+export type EditTaskSchemaType = z.infer<typeof editTaskSchema>;
